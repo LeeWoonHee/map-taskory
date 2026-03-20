@@ -4,17 +4,18 @@
   "framework": null,
   "functions": {
     "api/server.js": {
-      "includeFiles": "dist/server/**"
+      "includeFiles": "dist/server/**",
+      "maxDuration": 10
     }
   },
   "rewrites": [
     {
-      "source": "/assets/(.*)",
-      "destination": "/assets/$1"
+      "source": "/(favicon\\.svg|favicon\\.ico|logo192\\.png|logo512\\.png|manifest\\.json|robots\\.txt|sitemap\\.xml|ads\\.txt)",
+      "destination": "/$1"
     },
     {
-      "source": "/(favicon\\.svg|favicon\\.ico|logo192\\.png|logo512\\.png|manifest\\.json|robots\\.txt|sitemap\\.xml)",
-      "destination": "/$1"
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
     },
     {
       "source": "/(.*)",
