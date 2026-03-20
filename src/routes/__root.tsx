@@ -61,6 +61,14 @@ export const Route = createRootRoute({
         property: "kakao:title",
         content: "💜 광화문 BTS 공연 가이드 | 편의시설 안내",
       },
+      {
+        name: "google-site-verification",
+        content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo",
+      },
+      {
+        name: "naver-site-verification",
+        content: "6c07ca86af04ede6ffe86e65679475019a3a4eed",
+      },
     ],
     scripts: [
       {
