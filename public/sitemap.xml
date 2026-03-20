@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://map.taskory.work/</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://map.taskory.work/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://map.taskory.work/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://map.taskory.work/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://map.taskory.work/"/>
+  </url>
+  <url>
+    <loc>https://map.taskory.work/about</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
