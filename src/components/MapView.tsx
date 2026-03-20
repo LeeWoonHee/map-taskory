@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { Category, Location } from "../data/locations";
 import { categoryConfig } from "../data/locations";
+import { useLanguage } from "../i18n/LanguageContext";
+import type { Translations } from "../i18n/translations";
 
 interface MapViewProps {
   locations: Location[];
@@ -33,7 +35,7 @@ function createCustomIcon(L: typeof import("leaflet"), category: Category) {
   });
 }
 
-function createPopupContent(location: Location): string {
+function createPopupContent(location: Location, categoryLabel: string): string {
   const config = categoryConfig[location.category];
   return `
     <div style="min-width:220px;max-width:280px;font-family:'Manrope',ui-sans-serif,system-ui,sans-serif;">
@@ -46,7 +48,7 @@ function createPopupContent(location: Location): string {
           display:inline-flex;align-items:center;gap:5px;
           font-size:11px;font-weight:700;color:${config.color};
           letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;
-        "><span>${config.emoji}</span><span>${config.label}</span></div>
+        "><span>${config.emoji}</span><span>${categoryLabel}</span></div>
         <div style="font-size:14px;font-weight:700;color:#1a1a2e;line-height:1.3;">${location.name}</div>
       </div>
       <div style="padding:10px 14px 12px;">
@@ -75,6 +77,7 @@ export function MapView({
   activeCategories,
   onSelectLocation,
 }: MapViewProps) {
+  const { t } = useLanguage();
   const [isMounted, setIsMounted] = useState(false);
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -157,6 +160,7 @@ export function MapView({
       lat: number,
       lng: number,
       accuracy: number,
+      translations: Translations,
     ) => {
       if (!leafletMapRef.current) return;
       const { map } = leafletMapRef.current;
@@ -214,8 +218,8 @@ export function MapView({
         .bindPopup(
           `
         <div style="font-family:'Manrope',sans-serif;padding:2px 4px;">
-          <div style="font-weight:700;font-size:13px;color:#7B4EAB;margin-bottom:2px;">📍 내 현재 위치</div>
-          <div style="font-size:11px;color:#888;">정확도: 약 ${Math.round(accuracy)}m</div>
+          <div style="font-weight:700;font-size:13px;color:#7B4EAB;margin-bottom:2px;">📍 ${translations.myLocationTitle}</div>
+          <div style="font-size:11px;color:#888;">${translations.accuracy(Math.round(accuracy))}</div>
         </div>
       `,
           { maxWidth: 200 },
@@ -227,7 +231,7 @@ export function MapView({
   // 내 위치 버튼 클릭 핸들러
   const handleMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setGeoError("이 브라우저는 위치 서비스를 지원하지 않습니다.");
+      setGeoError(t.geoNotSupported);
       setGeoStatus("error");
       return;
     }
@@ -256,7 +260,7 @@ export function MapView({
           const { latitude, longitude, accuracy } = pos.coords;
           setGeoStatus("success");
           setGeoError(null);
-          updateMyLocationMarker(L, latitude, longitude, accuracy);
+          updateMyLocationMarker(L, latitude, longitude, accuracy, t);
 
           if (isFirst && leafletMapRef.current) {
             leafletMapRef.current.map.setView([latitude, longitude], 17, {
@@ -268,9 +272,9 @@ export function MapView({
         },
         (err) => {
           setGeoStatus("error");
-          if (err.code === 1) setGeoError("위치 권한이 거부되었습니다.");
-          else if (err.code === 2) setGeoError("위치를 가져올 수 없습니다.");
-          else setGeoError("위치 요청 시간이 초과되었습니다.");
+          if (err.code === 1) setGeoError(t.geoDenied);
+          else if (err.code === 2) setGeoError(t.geoUnavailable);
+          else setGeoError(t.geoTimeout);
           watchIdRef.current = null;
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
@@ -303,7 +307,7 @@ export function MapView({
         const icon = createCustomIcon(L, loc.category);
         const marker = L.marker([loc.lat, loc.lng], { icon })
           .addTo(map)
-          .bindPopup(createPopupContent(loc), { maxWidth: 300 });
+          .bindPopup(createPopupContent(loc, t.categories[loc.category]), { maxWidth: 300 });
 
         marker.on("click", () => {
           onSelectRef.current?.(loc);
@@ -314,7 +318,7 @@ export function MapView({
 
         markersRef.current.set(loc.id, marker);
       });
-  }, [locations, activeCategories]);
+  }, [locations, activeCategories, t]);
 
   // 지도 초기화 완료 후 마커 추가 (폴링으로 leafletMapRef 준비 대기)
   useEffect(() => {
@@ -332,17 +336,11 @@ export function MapView({
 
   if (!isMounted) {
     return (
-      <div
-        className="map-container-full flex items-center justify-center rounded-2xl"
-        style={{ background: "rgba(15,10,30,0.3)" }}
-      >
+      <div className="flex items-center justify-center h-full rounded-2xl bg-[rgba(15,10,30,0.3)]">
         <div className="text-center">
           <div className="bts-float mb-3 text-4xl">🗺️</div>
-          <p
-            className="text-sm font-medium"
-            style={{ color: "rgba(216,180,254,0.7)" }}
-          >
-            지도를 불러오는 중...
+          <p className="text-sm font-medium text-[rgba(216,180,254,0.7)]">
+            {t.loadingMap}
           </p>
         </div>
       </div>
@@ -360,17 +358,13 @@ export function MapView({
       {/* 지도 */}
       <div
         ref={mapContainerRef}
-        className="w-full h-full rounded-2xl overflow-hidden"
-        style={{
-          border: "1px solid rgba(123, 78, 171, 0.2)",
-          boxShadow: "0 4px 24px rgba(123, 78, 171, 0.1)",
-        }}
+        className="w-full h-full rounded-2xl overflow-hidden border border-[rgba(123,78,171,0.2)] shadow-[0_4px_24px_rgba(123,78,171,0.1)]"
       />
 
-      {/* 내 위치 버튼 */}
+      {/* 내 위치 버튼 — 동적 isTracking/isLoading 상태값이 복잡하여 style 유지 */}
       <button
         onClick={handleMyLocation}
-        title={isTracking ? "위치 추적 중지" : "내 위치 보기"}
+        title={isTracking ? t.stopTracking : t.myLocation}
         style={{
           position: "absolute",
           bottom: "80px",
@@ -406,22 +400,10 @@ export function MapView({
 
       {/* 에러 토스트 */}
       {geoStatus === "error" && geoError && (
-        <div
+        <div className="absolute z-[1000] max-w-[240px] rounded-xl px-[14px] py-[10px] text-xs font-semibold bg-[rgba(220,38,38,0.12)] border border-[rgba(220,38,38,0.35)] text-[#fca5a5] backdrop-blur-xl shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
           style={{
-            position: "absolute",
             bottom: "136px",
             right: "16px",
-            zIndex: 1000,
-            maxWidth: "240px",
-            borderRadius: "12px",
-            padding: "10px 14px",
-            fontSize: "12px",
-            fontWeight: 600,
-            background: "rgba(220, 38, 38, 0.12)",
-            border: "1px solid rgba(220,38,38,0.35)",
-            color: "#fca5a5",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
           }}
         >
           ⚠️ {geoError}
@@ -431,23 +413,10 @@ export function MapView({
       {/* 추적 중 상태 뱃지 */}
       {isTracking && (
         <div
+          className="absolute z-[1000] rounded-[20px] px-3 py-1.5 text-[11px] font-bold bg-[rgba(123,78,171,0.2)] border border-[rgba(155,110,196,0.4)] text-[#d8b4fe] backdrop-blur-xl shadow-[0_2px_12px_rgba(0,0,0,0.2)] flex items-center gap-[5px]"
           style={{
-            position: "absolute",
             bottom: "136px",
             right: "16px",
-            zIndex: 1000,
-            borderRadius: "20px",
-            padding: "6px 12px",
-            fontSize: "11px",
-            fontWeight: 700,
-            background: "rgba(123,78,171,0.2)",
-            border: "1px solid rgba(155,110,196,0.4)",
-            color: "#d8b4fe",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
           }}
         >
           <span
@@ -460,7 +429,7 @@ export function MapView({
               animation: "bts-pulse-glow 1s ease-in-out infinite",
             }}
           />
-          실시간 위치 추적 중
+          {t.trackingBadge}
         </div>
       )}
     </div>

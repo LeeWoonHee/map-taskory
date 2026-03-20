@@ -5,6 +5,15 @@
 
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --color-bts-purple: #7B4EAB;
+  --color-bts-light: #9B6EC4;
+  --color-bts-dark: #0F0A1E;
+  --color-bts-surface: #1A1232;
+  --color-bts-text: #d8b4fe;
+  --color-bts-muted: rgba(155, 110, 196, 0.6);
+  --color-venue-green: #10B981;
+  --color-venue-amber: #F59E0B;
+  --color-venue-blue: #3B82F6;
 }
 
 :root {
