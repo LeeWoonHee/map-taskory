@@ -8,6 +8,7 @@ export interface Pharmacy {
   address: string
   phone?: string
   hours?: Record<string, string>
+  isLateNight?: boolean  // endTime === 0 or 2400 (자정/24시 영업)
 }
 
 interface CenterInput {
@@ -47,6 +48,9 @@ function mapItem(i: any): Pharmacy | null {
     })
     if (Object.keys(h).length) hours = h
   }
+  const endTime = i.endTime != null ? Number(i.endTime) : undefined
+  const isLateNight = endTime === 0 || endTime === 2400
+
   return {
     id: i.hpid ?? `${lat}-${lng}`,
     name: i.dutyName,
@@ -55,6 +59,7 @@ function mapItem(i: any): Pharmacy | null {
     address: i.dutyAddr ?? '',
     phone: i.dutyTel1 || undefined,
     hours,
+    isLateNight,
   }
 }
 

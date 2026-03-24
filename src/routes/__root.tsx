@@ -1,13 +1,11 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import Footer from "../components/Footer";
 import Header from "../components/Header";
+import BottomNav from "../components/BottomNav";
 import { LanguageProvider } from "../i18n/LanguageContext";
 
 import appCss from "../styles.css?url";
 
-const THEME_INIT_SCRIPT = `(function(){try{var root=document.documentElement;root.classList.remove('light','auto');root.classList.add('dark');root.setAttribute('data-theme','dark');root.style.colorScheme='dark';}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{document.documentElement.style.colorScheme='light';}catch(e){}})();`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -29,7 +27,8 @@ export const Route = createRootRoute({
       },
       {
         name: "keywords",
-        content: "서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도,seoul mall smoking area,seoul public restroom,seoul pharmacy map",
+        content:
+          "서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도, 서울화장실, 스타필드흡연, 백화점흡연, 스타필드편의점, 백화점편의점, 내근처 약국, 내근처화장실, 내근처공공화장실, 무료화장실, 서울무료화장실, 내근처무료화장실, 서울약국위치, 서울화장실위치",
       },
       {
         property: "og:title",
@@ -44,7 +43,7 @@ export const Route = createRootRoute({
       },
       {
         name: "theme-color",
-        content: "#1e293b",
+        content: "#FFFFFF",
       },
       { name: "twitter:card", content: "summary_large_image" },
       {
@@ -103,38 +102,44 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-function AdSenseSide({ slot }: { slot: string }) {
-  return (
-    <aside className="hidden 2xl:flex w-40 shrink-0 justify-center pt-4 sticky top-[52px] self-start h-[calc(100dvh-52px)] overflow-hidden">
-      <ins
-        className="adsbygoogle"
-        style={{ display: "block", width: "160px", height: "600px" }}
-        data-ad-client="ca-pub-6691879714410770"
-        data-ad-slot={slot}
-        data-ad-format="auto"
-        data-full-width-responsive="false"
-      />
-    </aside>
-  );
-}
-
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
+      <body className="font-sans antialiased wrap-anywhere bg-[#F5F5F7]">
         <LanguageProvider>
           <Header />
-          {/* 데스크탑: 양쪽 AdSense 배너 + 중앙 콘텐츠 */}
-          <div className="flex w-full">
-            <main className="flex-1 min-w-0">{children}</main>
-          </div>
-          <Footer />
-        </LanguageProvider>
+          {/* 데스크탑: 양측 AdSense 컬럼 + 중앙 콘텐츠 */}
+          <div className="flex">
+            {/* 왼쪽 광고 */}
+            <aside className="hidden xl:flex w-40 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-r border-gray-200 bg-white">
+              <ins
+                className="adsbygoogle"
+                style={{ display: "block", width: "120px", height: "600px" }}
+                data-ad-client="ca-pub-6691879714410770"
+                data-ad-slot="LEFT_SLOT_ID"
+                data-ad-format="auto"
+              />
+            </aside>
 
+            <main className="flex-1 min-w-0">{children}</main>
+
+            {/* 오른쪽 광고 */}
+            <aside className="hidden xl:flex w-40 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-l border-gray-200 bg-white">
+              <ins
+                className="adsbygoogle"
+                style={{ display: "block", width: "120px", height: "600px" }}
+                data-ad-client="ca-pub-6691879714410770"
+                data-ad-slot="RIGHT_SLOT_ID"
+                data-ad-format="auto"
+              />
+            </aside>
+          </div>
+          <BottomNav />
+        </LanguageProvider>
         <Scripts />
       </body>
     </html>
