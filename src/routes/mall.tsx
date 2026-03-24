@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
   malls,
   mallFacilityConfig,
@@ -9,6 +9,11 @@ import {
 } from "../data/mallData";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useMyLocation } from "../hooks/useMyLocation";
+import type { Translations } from "../i18n/translations";
+import type { Map, Marker } from "leaflet";
+import { SEOUL_CENTER, DEFAULT_ZOOM } from "../constants";
+
+type LeafletModule = typeof import("leaflet");
 
 export const Route = createFileRoute("/mall")({
   head: () => ({
@@ -65,9 +70,6 @@ export const Route = createFileRoute("/mall")({
   component: MallPage,
 });
 
-const SEOUL_CENTER = { lat: 37.538, lng: 126.99 };
-const ZOOM = 14;
-
 const FACILITY_FILTERS: MallFacilityType[] = [
   "convenience",
   "smoking",
@@ -77,9 +79,9 @@ const FACILITY_FILTERS: MallFacilityType[] = [
 function MallPage() {
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const leafletRef = useRef<LeafletModule | null>(null);
+  const mapInstanceRef = useRef<Map | null>(null);
+  const markersRef = useRef<Marker[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [selectedMall, setSelectedMall] = useState<Mall | null>(null);
   // 흡연구역을 기본 필터로 설정
@@ -104,8 +106,8 @@ function MallPage() {
       if (cancelled || !mapRef.current) return;
       if (mapInstanceRef.current) return;
 
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
+      delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
+        ._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl:
           "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -117,7 +119,7 @@ function MallPage() {
       leafletRef.current = L;
       const map = L.map(mapRef.current, { zoomControl: true }).setView(
         [SEOUL_CENTER.lat, SEOUL_CENTER.lng],
-        ZOOM,
+        DEFAULT_ZOOM,
       );
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
@@ -136,7 +138,7 @@ function MallPage() {
     };
   }, [isMounted]);
 
-  const createMallIcon = useCallback((L: any, mall: Mall) => {
+  const createMallIcon = useCallback((L: LeafletModule, mall: Mall) => {
     const cfg = mallTypeConfig[mall.type];
     return L.divIcon({
       className: "",
@@ -155,7 +157,7 @@ function MallPage() {
   }, []);
 
   const renderMarkers = useCallback(
-    (L: any, map: any) => {
+    (L: LeafletModule, map: Map) => {
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
 
@@ -209,6 +211,8 @@ function MallPage() {
             <button
               key={f}
               onClick={() => toggleFilter(f)}
+              aria-pressed={active}
+              aria-label={`${t.mall.facilityTypes[f]} 필터 ${active ? "해제" : "적용"}`}
               style={
                 active
                   ? {
@@ -250,6 +254,8 @@ function MallPage() {
             onClick={goToMyLocation}
             disabled={locLoading}
             title="내 위치"
+            aria-label="현재 위치로 이동"
+            aria-busy={locLoading}
             className="pointer-events-auto w-10 h-10 flex items-center justify-center rounded-full bg-[#0C1220]/92 border border-white/10 text-slate-300 text-lg shadow-md hover:text-white hover:border-slate-400 transition-all cursor-pointer"
           >
             {locLoading ? (
@@ -276,6 +282,7 @@ function MallPage() {
             <MallDetail
               mall={selectedMall}
               filteredFacilities={filteredFacilities}
+              activeFilters={activeFilters}
               onClose={() => setSelectedMall(null)}
               t={t}
             />
@@ -290,16 +297,18 @@ function MallPage() {
   );
 }
 
-function MallDetail({
+const MallDetail = memo(function MallDetail({
   mall,
   filteredFacilities,
+  activeFilters,
   onClose,
   t,
 }: {
   mall: Mall;
   filteredFacilities: ReturnType<typeof mall.facilities.filter>;
+  activeFilters: Set<MallFacilityType>;
   onClose: () => void;
-  t: any;
+  t: Translations;
 }) {
   const typeCfg = mallTypeConfig[mall.type];
 
@@ -327,6 +336,7 @@ function MallDetail({
         </div>
         <button
           onClick={onClose}
+          aria-label="패널 닫기"
           className="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-700 text-lg leading-none bg-transparent border-none cursor-pointer"
         >
           ✕
@@ -348,7 +358,9 @@ function MallDetail({
         </h4>
         {filteredFacilities.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-3">
-            선택한 필터에 해당하는 시설이 없습니다
+            {activeFilters.has("smoking")
+              ? "확인된 흡연구역 없음"
+              : "선택한 필터에 해당하는 시설이 없습니다"}
           </p>
         ) : (
           <ul className="space-y-1.5">
@@ -402,4 +414,4 @@ function MallDetail({
       )}
     </div>
   );
-}
+});

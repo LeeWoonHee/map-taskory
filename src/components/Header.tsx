@@ -1,8 +1,7 @@
 import { useLanguage } from "../i18n/LanguageContext";
-import { LANGUAGES } from "../i18n/translations";
 
 export default function Header() {
-  const { lang, setLang } = useLanguage();
+  const { lang: _lang, setLang: _setLang } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 h-11 flex items-center px-4 bg-white border-b border-gray-200 shadow-sm">

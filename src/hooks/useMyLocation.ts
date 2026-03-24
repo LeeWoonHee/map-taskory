@@ -1,12 +1,15 @@
 import { useState, useCallback, useRef } from 'react'
+import type { Map, Marker } from 'leaflet'
+
+type LeafletModule = typeof import('leaflet')
 
 export function useMyLocation(
-  mapInstanceRef: React.MutableRefObject<any>,
-  leafletRef: React.MutableRefObject<any>,
+  mapInstanceRef: React.MutableRefObject<Map | null>,
+  leafletRef: React.MutableRefObject<LeafletModule | null>,
 ) {
   const [locLoading, setLocLoading] = useState(false)
   const [locError, setLocError] = useState<string | null>(null)
-  const myMarkerRef = useRef<any>(null)
+  const myMarkerRef = useRef<Marker | null>(null)
 
   const goToMyLocation = useCallback(() => {
     if (!navigator.geolocation) {

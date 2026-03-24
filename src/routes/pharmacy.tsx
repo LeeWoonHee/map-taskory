@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { fetchPharmaciesByBounds, type Pharmacy } from "../functions/pharmacy";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useMyLocation } from "../hooks/useMyLocation";
+import type { Translations } from "../i18n/translations";
+import type { Map, Marker } from "leaflet";
+import { SEOUL_CENTER, DEBOUNCE_MS } from "../constants";
+
+type LeafletModule = typeof import("leaflet");
 
 export const Route = createFileRoute("/pharmacy")({
   head: () => ({
@@ -60,15 +65,12 @@ export const Route = createFileRoute("/pharmacy")({
   component: PharmacyPage,
 });
 
-const SEOUL_CENTER = { lat: 37.538, lng: 126.99 };
-const DEBOUNCE_MS = 600;
-
 function PharmacyPage() {
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const leafletRef = useRef<LeafletModule | null>(null);
+  const mapInstanceRef = useRef<Map | null>(null);
+  const markersRef = useRef<Marker[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -151,8 +153,8 @@ function PharmacyPage() {
 
     import("leaflet").then((L) => {
       if (cancelled || !mapRef.current || mapInstanceRef.current) return;
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
+      delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
+        ._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl:
           "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -213,6 +215,8 @@ function PharmacyPage() {
         {/* 필터 뱃지 */}
         <button
           onClick={() => setFilter("all")}
+          aria-pressed={filter === "all"}
+          aria-label="전체 약국 보기"
           className={[
             "px-2.5 py-0.5 rounded-full text-[11px] font-semibold border cursor-pointer transition-all",
             filter === "all"
@@ -224,6 +228,8 @@ function PharmacyPage() {
         </button>
         <button
           onClick={() => setFilter("latenight")}
+          aria-pressed={filter === "latenight"}
+          aria-label="24시간 야간 약국만 보기"
           className={[
             "px-2.5 py-0.5 rounded-full text-[11px] font-semibold border cursor-pointer transition-all",
             filter === "latenight"
@@ -269,6 +275,8 @@ function PharmacyPage() {
           onClick={goToMyLocation}
           disabled={locLoading}
           title="내 위치"
+          aria-label="현재 위치로 이동"
+          aria-busy={locLoading}
           className="pointer-events-auto w-10 h-10 flex items-center justify-center rounded-full bg-[#0C1220]/92 border border-white/10 text-slate-300 text-lg shadow-md hover:text-white hover:border-slate-400 transition-all cursor-pointer"
         >
           {locLoading ? (
@@ -297,7 +305,7 @@ function PharmacyPage() {
   );
 }
 
-function CopyButton({
+const CopyButton = memo(function CopyButton({
   text,
   label,
   copied: copiedLabel,
@@ -321,6 +329,7 @@ function CopyButton({
   return (
     <button
       onClick={handleCopy}
+      aria-label={copied ? "복사됨" : `${label} 복사`}
       className={[
         "shrink-0 px-2 py-0.5 rounded-md text-[10px] font-semibold border cursor-pointer transition-all",
         copied
@@ -331,16 +340,16 @@ function CopyButton({
       {copied ? copiedLabel : label}
     </button>
   );
-}
+});
 
-function PharmacyModal({
+const PharmacyModal = memo(function PharmacyModal({
   pharmacy,
   onClose,
   t,
 }: {
   pharmacy: Pharmacy;
   onClose: () => void;
-  t: any;
+  t: Translations;
 }) {
   const pt = t.pharmacy;
 
@@ -348,16 +357,21 @@ function PharmacyModal({
     <div
       className="fixed inset-0 z-9999 flex items-end sm:items-center justify-center p-4 bg-[rgba(0,0,0,0.6)]"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-label="약국 정보"
     >
       <div className="w-full max-w-sm bg-[#0C1220] border border-emerald-500/25 rounded-2xl p-5 shadow-[0_8px_40px_rgba(0,0,0,0.6)] max-h-[80vh] overflow-y-auto">
         {/* 헤더 */}
         <div className="flex items-start justify-between mb-4">
-          <h3 className="text-base font-bold text-gray-900 leading-snug flex-1 pr-2">
+          <h3 className="text-base font-bold text-white leading-snug flex-1 pr-2">
             💊 {pharmacy.name}
           </h3>
           <button
             onClick={onClose}
-            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-transparent border-none cursor-pointer text-base"
+            aria-label="모달 닫기"
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 bg-transparent border-none cursor-pointer text-base"
           >
             ✕
           </button>
@@ -416,7 +430,7 @@ function PharmacyModal({
                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                   >
                     <span className="text-gray-400 w-10">
-                      {pt.dayLabels?.[day] ?? day}
+                      {(pt.dayLabels as Record<string, string> | undefined)?.[day] ?? day}
                     </span>
                     <span className="text-gray-700">{time}</span>
                   </div>
@@ -428,4 +442,4 @@ function PharmacyModal({
       </div>
     </div>
   );
-}
+});

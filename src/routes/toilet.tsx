@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { fetchToilets } from "../functions/toilets";
 import { type PublicToilet } from "../data/publicToiletsData";
 import { useLanguage } from "../i18n/LanguageContext";
 import { PageLoader } from "../components/PageLoader";
 import { useMyLocation } from "../hooks/useMyLocation";
+import type { Translations } from "../i18n/translations";
+import type { Map, Marker } from "leaflet";
+import { SEOUL_CENTER, DEFAULT_ZOOM } from "../constants";
+
+type LeafletModule = typeof import("leaflet");
 
 export const Route = createFileRoute("/toilet")({
   head: () => ({
@@ -65,15 +70,13 @@ export const Route = createFileRoute("/toilet")({
   component: ToiletPage,
 });
 
-const SEOUL_CENTER = { lat: 37.538, lng: 126.99 };
-
 function ToiletPage() {
   const { t } = useLanguage();
   const { toilets } = Route.useLoaderData();
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const leafletRef = useRef<LeafletModule | null>(null);
+  const mapInstanceRef = useRef<Map | null>(null);
+  const markersRef = useRef<Marker[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [modal, setModal] = useState<PublicToilet | null>(null);
   const [show24hOnly, setShow24hOnly] = useState(false);
@@ -100,8 +103,8 @@ function ToiletPage() {
 
     import("leaflet").then((L) => {
       if (cancelled || !mapRef.current || mapInstanceRef.current) return;
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
+      delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
+        ._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl:
           "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -112,7 +115,7 @@ function ToiletPage() {
       leafletRef.current = L;
       const map = L.map(mapRef.current).setView(
         [SEOUL_CENTER.lat, SEOUL_CENTER.lng],
-        14,
+        DEFAULT_ZOOM,
       );
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
@@ -177,6 +180,8 @@ function ToiletPage() {
       <div className="flex-shrink-0 px-3 py-2 flex items-center gap-2 flex-wrap bg-white border-b border-gray-200">
         <button
           onClick={() => setShow24hOnly((v) => !v)}
+          aria-pressed={show24hOnly}
+          aria-label={`24시간 운영 필터 ${show24hOnly ? "해제" : "적용"}`}
           className={[
             "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
             show24hOnly
@@ -188,6 +193,8 @@ function ToiletPage() {
         </button>
         <button
           onClick={() => setShowDisabledOnly((v) => !v)}
+          aria-pressed={showDisabledOnly}
+          aria-label={`장애인 화장실 필터 ${showDisabledOnly ? "해제" : "적용"}`}
           className={[
             "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
             showDisabledOnly
@@ -216,6 +223,8 @@ function ToiletPage() {
           onClick={goToMyLocation}
           disabled={locLoading}
           title="내 위치"
+          aria-label="현재 위치로 이동"
+          aria-busy={locLoading}
           className="pointer-events-auto w-10 h-10 flex items-center justify-center rounded-full bg-[#0C1220]/92 border border-white/10 text-slate-300 text-lg shadow-md hover:text-white hover:border-slate-400 transition-all cursor-pointer"
         >
           {locLoading ? (
@@ -234,19 +243,23 @@ function ToiletPage() {
   );
 }
 
-function ToiletModal({
+const ToiletModal = memo(function ToiletModal({
   toilet,
   onClose,
   t,
 }: {
   toilet: PublicToilet;
   onClose: () => void;
-  t: any;
+  t: Translations;
 }) {
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-[rgba(0,0,0,0.6)]"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-label="화장실 정보"
     >
       <div className="w-full max-w-sm bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
         {/* 헤더 */}
@@ -270,6 +283,7 @@ function ToiletModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="모달 닫기"
             className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-transparent border-none cursor-pointer text-base"
           >
             ✕
@@ -328,7 +342,7 @@ function ToiletModal({
       </div>
     </div>
   );
-}
+});
 
 function Row({
   label,
