@@ -20,46 +20,36 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "💜 광화문 BTS 공연 가이드 | 편의시설 안내",
+        title: "서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국",
       },
       {
         name: "description",
         content:
-          "2026년 3월 21일 광화문 BTS 무료 공연을 위한 편의시설 안내 — 편의점, 흡연구역, 무료화장실 위치를 지도에서 확인하세요.",
+          "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
       },
       {
         name: "keywords",
-        content: [
-          // 한국어
-          "bts,bts무료공연,bts광화문공연,광화문화장실,광화문편의점,광화문흡연실,광화문흡연구역,광화문흡연,bts무료공연화장실,bts광화문공연화장실,bts무료공연편의점,bts광화문공연편의점,bts무료공연흡연실,bts광화문공연흡연실,bts무료공연흡연구역,bts광화문공연흡연구역",
-          // English
-          "bts free concert,bts gwanghwamun,gwanghwamun concert,gwanghwamun convenience store,gwanghwamun restroom,gwanghwamun smoking area,bts concert map,bts concert facilities,seoul bts concert",
-          // 日本語
-          "bts無料コンサート,bts光化門,光化門コンビニ,光化門トイレ,光化門喫煙区域,btsコンサートマップ,btsコンサート施設案内",
-          // 中文
-          "bts免费演唱会,bts光化门,光化门便利店,光化门卫生间,光化门吸烟区,bts演唱会地图,bts演唱会设施指南",
-        ].join(","),
+        content: "서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도,seoul mall smoking area,seoul public restroom,seoul pharmacy map",
       },
       {
         property: "og:title",
-        content: "💜 광화문 BTS 공연 가이드 | 편의시설 안내",
+        content: "서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://map.taskory.work" },
       {
         property: "og:description",
         content:
-          "2026년 3월 21일 광화문 BTS 무료 공연을 위한 편의시설 안내 — 편의점, 흡연구역, 무료화장실 위치를 지도에서 확인하세요.",
+          "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
       },
       {
         name: "theme-color",
-        content: "#7B4EAB",
+        content: "#1e293b",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      // Kakao (Open Graph와 호환되지만 필요시 추가)
       {
         property: "kakao:title",
-        content: "💜 광화문 BTS 공연 가이드 | 편의시설 안내",
+        content: "서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국",
       },
       {
         name: "google-site-verification",
@@ -71,19 +61,20 @@ export const Route = createRootRoute({
       },
     ],
     scripts: [
-      {
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6691879714410770",
-        async: true,
-      },
+      // AdSense: 실제 광고 단위 ID 설정 후 주석 해제
+      // {
+      //   src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6691879714410770",
+      //   async: true,
+      // },
       {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "💜 광화문 BTS 공연 가이드 | 편의시설 안내",
+          name: "서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국",
           url: "https://map.taskory.work",
           description:
-            "2026년 3월 21일 광화문 BTS 무료 공연을 위한 편의시설 안내 — 편의점, 흡연구역, 무료화장실 위치를 지도에서 확인하세요.",
+            "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
         }),
       },
     ],
@@ -112,17 +103,35 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+function AdSenseSide({ slot }: { slot: string }) {
+  return (
+    <aside className="hidden 2xl:flex w-40 shrink-0 justify-center pt-4 sticky top-[52px] self-start h-[calc(100dvh-52px)] overflow-hidden">
+      <ins
+        className="adsbygoogle"
+        style={{ display: "block", width: "160px", height: "600px" }}
+        data-ad-client="ca-pub-6691879714410770"
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="false"
+      />
+    </aside>
+  );
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
+      <head suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         <LanguageProvider>
           <Header />
-          {children}
+          {/* 데스크탑: 양쪽 AdSense 배너 + 중앙 콘텐츠 */}
+          <div className="flex w-full">
+            <main className="flex-1 min-w-0">{children}</main>
+          </div>
           <Footer />
         </LanguageProvider>
 

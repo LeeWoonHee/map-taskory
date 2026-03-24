@@ -9,9 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToiletRouteImport } from './routes/toilet'
+import { Route as PharmacyRouteImport } from './routes/pharmacy'
+import { Route as MallRouteImport } from './routes/mall'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ToiletRoute = ToiletRouteImport.update({
+  id: '/toilet',
+  path: '/toilet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PharmacyRoute = PharmacyRouteImport.update({
+  id: '/pharmacy',
+  path: '/pharmacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MallRoute = MallRouteImport.update({
+  id: '/mall',
+  path: '/mall',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -26,31 +44,64 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/mall': typeof MallRoute
+  '/pharmacy': typeof PharmacyRoute
+  '/toilet': typeof ToiletRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/mall': typeof MallRoute
+  '/pharmacy': typeof PharmacyRoute
+  '/toilet': typeof ToiletRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/mall': typeof MallRoute
+  '/pharmacy': typeof PharmacyRoute
+  '/toilet': typeof ToiletRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths: '/' | '/about' | '/mall' | '/pharmacy' | '/toilet'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to: '/' | '/about' | '/mall' | '/pharmacy' | '/toilet'
+  id: '__root__' | '/' | '/about' | '/mall' | '/pharmacy' | '/toilet'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  MallRoute: typeof MallRoute
+  PharmacyRoute: typeof PharmacyRoute
+  ToiletRoute: typeof ToiletRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/toilet': {
+      id: '/toilet'
+      path: '/toilet'
+      fullPath: '/toilet'
+      preLoaderRoute: typeof ToiletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pharmacy': {
+      id: '/pharmacy'
+      path: '/pharmacy'
+      fullPath: '/pharmacy'
+      preLoaderRoute: typeof PharmacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mall': {
+      id: '/mall'
+      path: '/mall'
+      fullPath: '/mall'
+      preLoaderRoute: typeof MallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -71,6 +122,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  MallRoute: MallRoute,
+  PharmacyRoute: PharmacyRoute,
+  ToiletRoute: ToiletRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
