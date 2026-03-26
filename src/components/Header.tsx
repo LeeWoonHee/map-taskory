@@ -6,8 +6,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 h-11 flex items-center px-4 bg-white border-b border-gray-200 shadow-sm">
       {/* 로고 */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-base">🗺️</span>
+      <div className="flex items-center gap-1.5" aria-label="서울 생활 지도">
+        <span className="text-base" aria-hidden="true">🗺️</span>
         <span className="text-xs font-bold text-gray-800 tracking-tight hidden sm:block">
           서울 생활 지도
         </span>

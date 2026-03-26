@@ -9,174 +9,116 @@ import {
 } from "../data/mallData";
 import { useLanguage } from "../i18n/LanguageContext";
 import { useMyLocation } from "../hooks/useMyLocation";
+import { loadKakaoMap } from "../lib/kakaoMap";
 import type { Translations } from "../i18n/translations";
-import type { Map, Marker } from "leaflet";
-import { SEOUL_CENTER, DEFAULT_ZOOM } from "../constants";
-
-type LeafletModule = typeof import("leaflet");
+import { SEOUL_CENTER } from "../constants";
 
 export const Route = createFileRoute("/mall")({
   head: () => ({
     meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "서울 생활 지도 | 쇼핑몰",
-      },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "서울 생활 지도 | 쇼핑몰" },
       {
         name: "description",
-        content:
-          "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
       },
       {
         name: "keywords",
         content:
           "서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도, 서울화장실, 스타필드흡연, 백화점흡연, 스타필드편의점, 백화점편의점, 내근처 약국, 내근처화장실, 내근처공공화장실, 무료화장실, 서울무료화장실, 내근처무료화장실, 서울약국위치, 서울화장실위치,서울쇼핑몰흡연구역, 서울쇼핑몰흡연실, 서울쇼핑몰편의점, 서울쇼핑몰화장실, 서울쇼핑몰위치, 스타필드위치, 스타필드흡연구역, 스타필드흡연실, 스타필드편의점, 스타필드화장실, 백화점위치, 백화점흡연구역, 백화점흡연실, 백화점편의점, 백화점화장실, 신세계백화점편의점, 신세계백화점흡연실, 신세계백화점흡연구역, 신세계백화점편의점, 현대백화점흡연실, 현대백화점흡연구역, 현대백화점편의점, 현대백화점화장실, 롯데월드몰흡연실, 롯데월드몰흡연구역, 롯데월드몰편의점, 롯데월드몰화장실, 코엑스흡연실, 코엑스흡연구역, 코엑스편의점, 코엑스화장실, 타임스퀘어흡연구역, 타임스퀘어흡연실, 타임스퀘어편의점, 타임스퀘어화장실",
       },
-      {
-        property: "og:title",
-        content: "서울 생활 지도 | 쇼핑몰",
-      },
+      { property: "og:title", content: "서울 생활 지도 | 쇼핑몰" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://map.taskory.work" },
-      {
-        property: "og:description",
-        content: "서울 생활 지도 | 쇼핑몰 편의시설",
-      },
-      {
-        name: "theme-color",
-        content: "#FFFFFF",
-      },
+      { property: "og:description", content: "서울 생활 지도 | 쇼핑몰 편의시설" },
+      { name: "theme-color", content: "#FFFFFF" },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        property: "kakao:title",
-        content: "서울 생활 지도 | 쇼핑몰",
-      },
-      {
-        name: "google-site-verification",
-        content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo",
-      },
-      {
-        name: "naver-site-verification",
-        content: "6c07ca86af04ede6ffe86e65679475019a3a4eed",
-      },
+      { property: "kakao:title", content: "서울 생활 지도 | 쇼핑몰" },
+      { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
+      { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
     ],
   }),
   component: MallPage,
 });
 
-const FACILITY_FILTERS: MallFacilityType[] = [
-  "convenience",
-  "smoking",
-  "restroom",
-];
+const FACILITY_FILTERS: MallFacilityType[] = ["convenience", "smoking", "restroom"];
 
 function MallPage() {
   const { t } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<LeafletModule | null>(null);
-  const mapInstanceRef = useRef<Map | null>(null);
-  const markersRef = useRef<Marker[]>([]);
+  const mapInstanceRef = useRef<kakao.maps.Map | null>(null);
+  const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [selectedMall, setSelectedMall] = useState<Mall | null>(null);
-  // 흡연구역을 기본 필터로 설정
   const [activeFilters, setActiveFilters] = useState<Set<MallFacilityType>>(
     new Set<MallFacilityType>(["smoking"]),
   );
-  const { goToMyLocation, locLoading, locError } = useMyLocation(
-    mapInstanceRef,
-    leafletRef,
-  );
+  const { goToMyLocation, locLoading, locError } = useMyLocation(mapInstanceRef);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // 지도 초기화
-  useEffect(() => {
-    if (!isMounted || !mapRef.current) return;
-    let cancelled = false;
-
-    import("leaflet").then((L) => {
-      if (cancelled || !mapRef.current) return;
-      if (mapInstanceRef.current) return;
-
-      delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
-        ._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-
-      leafletRef.current = L;
-      const map = L.map(mapRef.current, { zoomControl: true }).setView(
-        [SEOUL_CENTER.lat, SEOUL_CENTER.lng],
-        DEFAULT_ZOOM,
-      );
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-          maxZoom: 19,
-        },
-      ).addTo(map);
-
-      mapInstanceRef.current = map;
-      renderMarkers(L, map);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isMounted]);
-
-  const createMallIcon = useCallback((L: LeafletModule, mall: Mall) => {
-    const cfg = mallTypeConfig[mall.type];
-    return L.divIcon({
-      className: "",
-      html: `<div style="
+  const createOverlay = useCallback(
+    (map: kakao.maps.Map, mall: Mall) => {
+      const cfg = mallTypeConfig[mall.type];
+      const el = document.createElement("div");
+      el.style.cssText = `
         width:40px;height:40px;border-radius:50%;
         background:rgba(15,23,42,0.92);
         border:2.5px solid ${cfg.color};
         box-shadow:0 0 12px ${cfg.color}55;
         display:flex;align-items:center;justify-content:center;
         font-size:18px;cursor:pointer;
-      ">${cfg.emoji}</div>`,
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -44],
-    });
-  }, []);
+        transform:translate(-50%,-100%);
+      `;
+      el.textContent = cfg.emoji;
+      el.addEventListener("click", () => setSelectedMall(mall));
 
-  const renderMarkers = useCallback(
-    (L: LeafletModule, map: Map) => {
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current = [];
-
-      malls.forEach((mall) => {
-        const icon = createMallIcon(L, mall);
-        const marker = L.marker([mall.lat, mall.lng], { icon }).addTo(map);
-        marker.on("click", () => setSelectedMall(mall));
-        markersRef.current.push(marker);
+      return new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(mall.lat, mall.lng),
+        content: el,
+        map,
+        yAnchor: 1,
+        xAnchor: 0.5,
+        zIndex: 3,
       });
     },
-    [createMallIcon],
+    [],
   );
 
+  const renderOverlays = useCallback(
+    (map: kakao.maps.Map) => {
+      overlaysRef.current.forEach((o) => o.setMap(null));
+      overlaysRef.current = [];
+      malls.forEach((mall) => {
+        overlaysRef.current.push(createOverlay(map, mall));
+      });
+    },
+    [createOverlay],
+  );
+
+  // 지도 초기화
   useEffect(() => {
-    const L = leafletRef.current;
-    const map = mapInstanceRef.current;
-    if (!L || !map) return;
-    renderMarkers(L, map);
-  }, [renderMarkers]);
+    if (!isMounted || !mapRef.current || mapInstanceRef.current) return;
+    let cancelled = false;
+
+    loadKakaoMap().then(() => {
+      if (cancelled || !mapRef.current || mapInstanceRef.current) return;
+
+      const map = new kakao.maps.Map(mapRef.current, {
+        center: new kakao.maps.LatLng(SEOUL_CENTER.lat, SEOUL_CENTER.lng),
+        level: 7,
+      });
+      mapInstanceRef.current = map;
+      renderOverlays(map);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isMounted, renderOverlays]);
 
   const toggleFilter = (f: MallFacilityType) => {
     setActiveFilters((prev) => {
@@ -201,9 +143,7 @@ function MallPage() {
     <div className="relative flex flex-col h-[calc(100dvh-108px)]">
       {/* 필터 바 */}
       <div className="flex-shrink-0 px-3 py-2 flex items-center gap-2 bg-white border-b border-gray-200">
-        <span className="text-xs font-semibold text-gray-500 mr-1">
-          {t.filterLabel}
-        </span>
+        <span className="text-xs font-semibold text-gray-500 mr-1">{t.filterLabel}</span>
         {FACILITY_FILTERS.map((f) => {
           const cfg = mallFacilityConfig[f];
           const active = activeFilters.has(f);
@@ -215,18 +155,12 @@ function MallPage() {
               aria-label={`${t.mall.facilityTypes[f]} 필터 ${active ? "해제" : "적용"}`}
               style={
                 active
-                  ? {
-                      background: cfg.bgColor,
-                      borderColor: cfg.borderColor,
-                      color: cfg.color,
-                    }
+                  ? { background: cfg.bgColor, borderColor: cfg.borderColor, color: cfg.color }
                   : undefined
               }
               className={[
                 "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
-                active
-                  ? "border-current"
-                  : "bg-white border-gray-200 text-gray-400",
+                active ? "border-current" : "bg-white border-gray-200 text-gray-600",
               ].join(" ")}
             >
               <span>{cfg.emoji}</span>
@@ -234,9 +168,7 @@ function MallPage() {
             </button>
           );
         })}
-        <span className="ml-auto text-xs text-gray-400">
-          {malls.length}개 쇼핑몰
-        </span>
+        <span className="ml-auto text-xs text-gray-400">{malls.length}개 쇼핑몰</span>
       </div>
 
       {/* 지도 + 사이드 패널 */}
@@ -244,16 +176,15 @@ function MallPage() {
         <div ref={mapRef} className="flex-1 z-0" />
 
         {/* 내 위치 버튼 */}
-        <div className="absolute bottom-4 right-3 z-1000 flex flex-col items-end gap-2 pointer-events-none">
+        <div className="absolute bottom-4 right-3 z-[1000] flex flex-col items-end gap-2 pointer-events-none">
           {locError && (
-            <div className="pointer-events-auto px-3 py-1.5 rounded-lg text-xs bg-[#0C1220]/95 border border-white/10 text-slate-300 shadow-lg">
+            <div className="pointer-events-auto px-3 py-1.5 rounded-lg text-xs bg-[#0C1220]/95 border border-white/10 text-slate-300 shadow-lg max-w-[200px]">
               ⚠️ {locError}
             </div>
           )}
           <button
             onClick={goToMyLocation}
             disabled={locLoading}
-            title="내 위치"
             aria-label="현재 위치로 이동"
             aria-busy={locLoading}
             className="pointer-events-auto w-10 h-10 flex items-center justify-center rounded-full bg-[#0C1220]/92 border border-white/10 text-slate-300 text-lg shadow-md hover:text-white hover:border-slate-400 transition-all cursor-pointer"
@@ -273,9 +204,7 @@ function MallPage() {
             "sm:w-80 sm:flex-shrink-0 overflow-y-auto",
             "bg-white border-t sm:border-t-0 sm:border-l border-gray-200",
             "transition-all duration-300 z-10",
-            selectedMall
-              ? "max-h-[55vh] sm:max-h-full"
-              : "max-h-0 sm:max-h-full overflow-hidden",
+            selectedMall ? "max-h-[50vh] sm:max-h-full" : "max-h-0 sm:max-h-full overflow-hidden",
           ].join(" ")}
         >
           {selectedMall ? (
@@ -329,9 +258,7 @@ const MallDetail = memo(function MallDetail({
               {typeCfg.emoji} {t.mall.mallTypes[mall.type]}
             </span>
           </div>
-          <h3 className="text-base font-bold text-slate-200 truncate">
-            {mall.name}
-          </h3>
+          <h3 className="text-base font-bold text-gray-900 truncate">{mall.name}</h3>
           <p className="text-xs text-gray-500 mt-0.5">{mall.address}</p>
         </div>
         <button
@@ -370,28 +297,16 @@ const MallDetail = memo(function MallDetail({
                 <li
                   key={i}
                   className="flex items-start gap-2 p-2 rounded-lg text-xs"
-                  style={{
-                    background: cfg.bgColor,
-                    border: `1px solid ${cfg.borderColor}`,
-                  }}
+                  style={{ background: cfg.bgColor, border: `1px solid ${cfg.borderColor}` }}
                 >
-                  <span className="text-sm leading-none mt-0.5">
-                    {cfg.emoji}
-                  </span>
+                  <span className="text-sm leading-none mt-0.5">{cfg.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <span
-                      className="font-semibold"
-                      style={{ color: cfg.color }}
-                    >
+                    <span className="font-semibold" style={{ color: cfg.color }}>
                       {t.mall.facilityTypes[f.type]}
                     </span>
-                    <span className="text-[rgba(200,200,220,0.8)] ml-1">
-                      — {f.location}
-                    </span>
+                    <span className="text-[rgba(200,200,220,0.8)] ml-1">— {f.location}</span>
                     {f.notes && (
-                      <span className="block text-gray-500 mt-0.5">
-                        {f.notes}
-                      </span>
+                      <span className="block text-gray-500 mt-0.5">{f.notes}</span>
                     )}
                   </div>
                 </li>

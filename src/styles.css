@@ -1,4 +1,3 @@
-@import 'leaflet/dist/leaflet.css';
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
@@ -33,43 +32,22 @@ button {
     border-color 150ms ease, transform 150ms ease;
 }
 
-/* Leaflet */
-.leaflet-popup-content-wrapper {
-  border-radius: 14px !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12) !important;
-  border: 1px solid rgba(0,0,0,0.08) !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-.leaflet-popup-content {
-  margin: 0 !important;
-}
-.leaflet-popup-tip-container {
-  margin-top: -1px;
-}
-.leaflet-popup-tip {
-  background: white !important;
-}
-.leaflet-container {
-  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif !important;
-}
-
 /* 스크롤바 숨기기 */
 .overflow-x-auto::-webkit-scrollbar {
   display: none;
 }
 
-/* Leaflet attribution 최소화 (OSM 라이선스상 삭제 불가, 최소 노출) */
-.leaflet-control-attribution {
+/* 내 위치 마커 ping 애니메이션 */
+@keyframes my-location-ping {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* 카카오 지도 저작권 최소화 */
+.kakao_map_wrapper .link_logo,
+.kakao_map_wrapper .link_more {
   font-size: 9px !important;
-  opacity: 0.45 !important;
-  background: rgba(255,255,255,0.6) !important;
-  padding: 1px 4px !important;
-  line-height: 1.4 !important;
-}
-.leaflet-control-attribution a {
-  color: #666 !important;
-}
-.leaflet-control-attribution:hover {
-  opacity: 1 !important;
+  opacity: 0.5 !important;
 }

@@ -4,7 +4,12 @@
       "Bash(npm install:*)",
       "Bash(npm run:*)",
       "Bash(ls:*)",
-      "Bash(pnpm exec:*)"
+      "Bash(pnpm exec:*)",
+      "Bash(grep -r process.env /Users/leewoonhee/Project/FE/tss/map-taskory/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -n \"L.divIcon\" /Users/leewoonhee/Project/FE/tss/map-taskory/src/routes/*.tsx)",
+      "Bash(grep -rn process.env. /Users/leewoonhee/Project/FE/tss/map-taskory/src --include=*.tsx --include=*.ts)",
+      "Bash(grep:*)",
+      "Bash(pnpm run:*)"
     ]
   }
 }

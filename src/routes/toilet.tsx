@@ -5,63 +5,40 @@ import { type PublicToilet } from "../data/publicToiletsData";
 import { useLanguage } from "../i18n/LanguageContext";
 import { PageLoader } from "../components/PageLoader";
 import { useMyLocation } from "../hooks/useMyLocation";
+import { loadKakaoMap } from "../lib/kakaoMap";
 import type { Translations } from "../i18n/translations";
-import type { Map, Marker } from "leaflet";
-import { SEOUL_CENTER, DEFAULT_ZOOM } from "../constants";
+import { SEOUL_CENTER } from "../constants";
 
-type LeafletModule = typeof import("leaflet");
+const FOCUSABLE_SELECTORS =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export const Route = createFileRoute("/toilet")({
   head: () => ({
     meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "서울 생활 지도 | 화장실",
-      },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "서울 생활 지도 | 화장실" },
       {
         name: "description",
-        content:
-          "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
       },
       {
         name: "keywords",
         content:
           "서울화장실, 서울화장실위치, 서울개방형화장실, 서울무료화장실, 서울공공화장실, 서울개방화장실, 서울오픈화장실, 화장실, 화장실위치, 개방형화장실, 무료화장실, 공공화장실, 개방화장실, 오픈화장실",
       },
-      {
-        property: "og:title",
-        content: "서울 생활 지도 | 화장실",
-      },
+      { property: "og:title", content: "서울 생활 지도 | 화장실" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://map.taskory.work" },
       {
         property: "og:description",
-        content:
-          "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
       },
-      {
-        name: "theme-color",
-        content: "#FFFFFF",
-      },
+      { name: "theme-color", content: "#FFFFFF" },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        property: "kakao:title",
-        content: "서울 생활 지도 | 화장실",
-      },
-      {
-        name: "google-site-verification",
-        content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo",
-      },
-      {
-        name: "naver-site-verification",
-        content: "6c07ca86af04ede6ffe86e65679475019a3a4eed",
-      },
+      { property: "kakao:title", content: "서울 생활 지도 | 화장실" },
+      { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
+      { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
     ],
   }),
   loader: () => fetchToilets(),
@@ -74,97 +51,80 @@ function ToiletPage() {
   const { t } = useLanguage();
   const { toilets } = Route.useLoaderData();
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<LeafletModule | null>(null);
-  const mapInstanceRef = useRef<Map | null>(null);
-  const markersRef = useRef<Marker[]>([]);
+  const mapInstanceRef = useRef<kakao.maps.Map | null>(null);
+  const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [modal, setModal] = useState<PublicToilet | null>(null);
   const [show24hOnly, setShow24hOnly] = useState(false);
   const [showDisabledOnly, setShowDisabledOnly] = useState(false);
-  const { goToMyLocation, locLoading, locError } = useMyLocation(
-    mapInstanceRef,
-    leafletRef,
-  );
+  const { goToMyLocation, locLoading, locError } = useMyLocation(mapInstanceRef);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const filtered = toilets.filter((t) => {
-    if (show24hOnly && !t.isOpen24h) return false;
-    if (showDisabledOnly && !t.hasDisabled) return false;
+  const filtered = toilets.filter((item) => {
+    if (show24hOnly && !item.isOpen24h) return false;
+    if (showDisabledOnly && !item.hasDisabled) return false;
     return true;
   });
+
+  // 마커 렌더링
+  const renderOverlays = useCallback(
+    (map: kakao.maps.Map, items: PublicToilet[]) => {
+      overlaysRef.current.forEach((o) => o.setMap(null));
+      overlaysRef.current = [];
+
+      items.forEach((toilet) => {
+        const color = toilet.isOpen24h ? "#3B82F6" : "#60A5FA";
+        const el = document.createElement("div");
+        el.style.cssText = `width:32px;height:32px;border-radius:50%;background:rgba(15,23,42,0.92);border:2px solid ${color};box-shadow:0 0 8px ${color}44;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transform:translate(-50%,-100%);`;
+        el.textContent = "🚻";
+        el.addEventListener("click", () => setModal(toilet));
+
+        overlaysRef.current.push(
+          new kakao.maps.CustomOverlay({
+            position: new kakao.maps.LatLng(toilet.lat, toilet.lng),
+            content: el,
+            map,
+            yAnchor: 1,
+            xAnchor: 0.5,
+            zIndex: 3,
+          }),
+        );
+      });
+    },
+    [],
+  );
 
   // 지도 초기화
   useEffect(() => {
     if (!isMounted || !mapRef.current || mapInstanceRef.current) return;
     let cancelled = false;
 
-    import("leaflet").then((L) => {
+    loadKakaoMap().then(() => {
       if (cancelled || !mapRef.current || mapInstanceRef.current) return;
-      delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
-        ._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+
+      const map = new kakao.maps.Map(mapRef.current, {
+        center: new kakao.maps.LatLng(SEOUL_CENTER.lat, SEOUL_CENTER.lng),
+        level: 5,
       });
-      leafletRef.current = L;
-      const map = L.map(mapRef.current).setView(
-        [SEOUL_CENTER.lat, SEOUL_CENTER.lng],
-        DEFAULT_ZOOM,
-      );
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          attribution: "&copy; OpenStreetMap &copy; CARTO",
-          maxZoom: 19,
-        },
-      ).addTo(map);
       mapInstanceRef.current = map;
+      renderOverlays(map, filtered);
     });
 
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]);
 
-  // 마커 렌더링
-  const renderMarkers = useCallback(() => {
-    const L = leafletRef.current;
+  // 필터 변경 시 마커 재렌더링
+  useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!L || !map) return;
-
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    filtered.forEach((toilet) => {
-      const color = toilet.isOpen24h ? "#3B82F6" : "#60A5FA";
-      const icon = L.divIcon({
-        className: "",
-        html: `<div style="width:32px;height:32px;border-radius:50%;background:rgba(15,23,42,0.92);border:2px solid ${color};box-shadow:0 0 8px ${color}44;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;">🚻</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-      });
-      const marker = L.marker([toilet.lat, toilet.lng], { icon }).addTo(map);
-      marker.on("click", () => setModal(toilet));
-      markersRef.current.push(marker);
-    });
-  }, [filtered]);
-
-  useEffect(() => {
-    if (isMounted && mapInstanceRef.current) renderMarkers();
-  }, [isMounted, renderMarkers]);
-
-  // 지도가 초기화된 후 마커 렌더링 (지연)
-  useEffect(() => {
-    if (!isMounted) return;
-    const timer = setTimeout(renderMarkers, 500);
-    return () => clearTimeout(timer);
-  }, [isMounted, renderMarkers]);
+    if (!map) return;
+    renderOverlays(map, filtered);
+  }, [filtered, renderOverlays]);
 
   if (!isMounted) {
     return (
@@ -186,7 +146,7 @@ function ToiletPage() {
             "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
             show24hOnly
               ? "bg-[rgba(59,130,246,0.15)] border-[rgba(59,130,246,0.4)] text-[#60A5FA]"
-              : "bg-white border-gray-200 text-gray-400",
+              : "bg-white border-gray-200 text-gray-600",
           ].join(" ")}
         >
           🕐 {t.toilet.open24h}
@@ -199,7 +159,7 @@ function ToiletPage() {
             "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer",
             showDisabledOnly
               ? "bg-[rgba(139,92,246,0.15)] border-[rgba(139,92,246,0.4)] text-[#A78BFA]"
-              : "bg-white border-gray-200 text-gray-400",
+              : "bg-white border-gray-200 text-gray-600",
           ].join(" ")}
         >
           ♿ {t.toilet.disabled}
@@ -213,16 +173,15 @@ function ToiletPage() {
       <div ref={mapRef} className="flex-1 z-0" />
 
       {/* 내 위치 버튼 */}
-      <div className="absolute bottom-4 right-3 z-1000 flex flex-col items-end gap-2 pointer-events-none">
+      <div className="absolute bottom-4 right-3 z-[1000] flex flex-col items-end gap-2 pointer-events-none">
         {locError && (
-          <div className="pointer-events-auto px-3 py-1.5 rounded-lg text-xs bg-[#0C1220]/95 border border-white/10 text-slate-300 shadow-lg">
+          <div className="pointer-events-auto px-3 py-1.5 rounded-lg text-xs bg-[#0C1220]/95 border border-white/10 text-slate-300 shadow-lg max-w-[200px]">
             ⚠️ {locError}
           </div>
         )}
         <button
           onClick={goToMyLocation}
           disabled={locLoading}
-          title="내 위치"
           aria-label="현재 위치로 이동"
           aria-busy={locLoading}
           className="pointer-events-auto w-10 h-10 flex items-center justify-center rounded-full bg-[#0C1220]/92 border border-white/10 text-slate-300 text-lg shadow-md hover:text-white hover:border-slate-400 transition-all cursor-pointer"
@@ -252,17 +211,53 @@ const ToiletModal = memo(function ToiletModal({
   onClose: () => void;
   t: Translations;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    dialog.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-[rgba(0,0,0,0.6)]"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-[rgba(0,0,0,0.6)] outline-none"
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
       role="dialog"
       aria-modal="true"
       aria-label="화장실 정보"
     >
       <div className="w-full max-w-sm bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
-        {/* 헤더 */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0 pr-3">
             <div className="flex items-center gap-1.5 flex-wrap mb-1">
@@ -291,50 +286,38 @@ const ToiletModal = memo(function ToiletModal({
         </div>
 
         <div className="space-y-2">
-          {/* 주소 */}
           <Row
-            label={
-              t.toilet.pageTitle === "서울 공공화장실" ? "주소" : t.address
-            }
+            label={t.toilet.pageTitle === "서울 공공화장실" ? "주소" : t.address}
             value={toilet.address}
           />
 
-          {/* 운영시간 */}
           {(toilet.isOpen24h || toilet.openHours) && (
             <Row
               label={t.toilet.openHours}
-              value={
-                toilet.isOpen24h ? t.toilet.open24h : (toilet.openHours ?? "")
-              }
+              value={toilet.isOpen24h ? t.toilet.open24h : (toilet.openHours ?? "")}
               highlight={toilet.isOpen24h}
             />
           )}
 
-          {/* 변기 수 */}
           {(toilet.maleCount || toilet.femaleCount) && (
             <div className="flex gap-2">
               {toilet.maleCount ? (
                 <div className="flex-1 text-center p-2 rounded-lg bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.2)]">
                   <div className="text-lg">🚹</div>
                   <div className="text-xs text-gray-500">{t.toilet.male}</div>
-                  <div className="text-sm font-bold text-[#60A5FA]">
-                    {toilet.maleCount}칸
-                  </div>
+                  <div className="text-sm font-bold text-[#60A5FA]">{toilet.maleCount}칸</div>
                 </div>
               ) : null}
               {toilet.femaleCount ? (
                 <div className="flex-1 text-center p-2 rounded-lg bg-[rgba(236,72,153,0.08)] border border-[rgba(236,72,153,0.2)]">
                   <div className="text-lg">🚺</div>
                   <div className="text-xs text-gray-500">{t.toilet.female}</div>
-                  <div className="text-sm font-bold text-[#F472B6]">
-                    {toilet.femaleCount}칸
-                  </div>
+                  <div className="text-sm font-bold text-[#F472B6]">{toilet.femaleCount}칸</div>
                 </div>
               ) : null}
             </div>
           )}
 
-          {/* 관리기관 */}
           {toilet.managedBy && (
             <Row label={t.toilet.managedBy} value={toilet.managedBy} />
           )}
@@ -356,9 +339,7 @@ function Row({
   return (
     <div className="flex items-start gap-2 text-xs">
       <span className="shrink-0 text-gray-400 w-14">{label}</span>
-      <span
-        className={highlight ? "text-[#60A5FA] font-semibold" : "text-gray-700"}
-      >
+      <span className={highlight ? "text-[#60A5FA] font-semibold" : "text-gray-700"}>
         {value}
       </span>
     </div>
