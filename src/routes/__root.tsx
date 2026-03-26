@@ -119,10 +119,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           {/* 데스크탑: 양측 AdSense 컬럼 + 중앙 콘텐츠 */}
           <div className="flex">
             {/* 왼쪽 광고 */}
-            <aside className="hidden xl:flex w-40 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-r border-gray-200 bg-white">
+            <aside className="hidden xl:flex w-48 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-r border-gray-200 bg-white">
               <ins
                 className="adsbygoogle"
-                style={{ display: 'block', width: '120px', height: '600px' }}
+                style={{ display: 'block', width: '160px', height: '600px' }}
                 data-ad-client="ca-pub-6691879714410770"
                 data-ad-slot="LEFT_SLOT_ID"
                 data-ad-format="auto"
@@ -132,10 +132,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <main className="flex-1 min-w-0">{children}</main>
 
             {/* 오른쪽 광고 */}
-            <aside className="hidden xl:flex w-40 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-l border-gray-200 bg-white">
+            <aside className="hidden xl:flex w-48 shrink-0 flex-col items-center pt-4 gap-4 sticky top-11 h-[calc(100dvh-108px)] self-start border-l border-gray-200 bg-white">
               <ins
                 className="adsbygoogle"
-                style={{ display: 'block', width: '120px', height: '600px' }}
+                style={{ display: 'block', width: '160px', height: '600px' }}
                 data-ad-client="ca-pub-6691879714410770"
                 data-ad-slot="RIGHT_SLOT_ID"
                 data-ad-format="auto"
