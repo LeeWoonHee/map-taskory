@@ -38,6 +38,41 @@ export const Route = createFileRoute("/pharmacy")({
       { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
       { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "내 근처 약국을 어떻게 찾나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "서울 생활 지도의 약국 페이지에서 🧭 버튼을 누르면 현재 위치 주변의 약국을 지도에서 확인할 수 있습니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "야간에 운영하는 약국은 어디서 찾나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "약국 지도에서 '야간 약국' 필터를 선택하면 오후 9시 이후에도 운영하는 약국을 확인할 수 있습니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "서울 24시간 약국은 어디에 있나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "약국 지도에서 야간 약국 필터를 활용하면 늦은 시간에도 이용 가능한 약국을 찾을 수 있습니다. 지도를 원하는 지역으로 이동하면 해당 지역 약국이 자동으로 표시됩니다.",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: PharmacyPage,
 });
@@ -161,6 +196,7 @@ function PharmacyPage() {
 
   return (
     <div className="relative flex flex-col h-[calc(100dvh-108px)]">
+      <h1 className="sr-only">서울 약국 지도 — 내 근처 약국 · 야간 약국 위치 찾기</h1>
       {/* 상태 바 */}
       <div className="flex-shrink-0 px-3 py-2 flex items-center gap-2 bg-white border-b border-gray-200">
         <span className="text-xs font-semibold text-[rgba(16,185,129,0.8)]">💊</span>

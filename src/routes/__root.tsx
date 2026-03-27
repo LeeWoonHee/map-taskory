@@ -27,7 +27,7 @@ export const Route = createRootRoute({
       {
         name: 'keywords',
         content:
-          '서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도, 서울화장실, 스타필드흡연, 백화점흡연, 스타필드편의점, 백화점편의점, 내근처 약국, 내근처화장실, 내근처공공화장실, 무료화장실, 서울무료화장실, 내근처무료화장실, 서울약국위치, 서울화장실위치',
+          '서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도, 서울화장실, 스타필드흡연, 백화점흡연, 스타필드편의점, 백화점편의점, 내근처 약국, 내근처화장실, 내근처공공화장실, 무료화장실, 서울무료화장실, 내근처무료화장실, 서울약국위치, 서울화장실위치, 흡연구역위치, 흡연실위치, 약국위치, 편의점위치, 24시약국, 스타필드흡연실위치, 스타필드흡연구역위치',
       },
       {
         property: 'og:title',
@@ -39,6 +39,10 @@ export const Route = createRootRoute({
         property: 'og:description',
         content: '서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.',
       },
+      { property: 'og:image', content: 'https://map.taskory.work/og-image.png' },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { name: 'twitter:image', content: 'https://map.taskory.work/og-image.png' },
       {
         name: 'theme-color',
         content: '#FFFFFF',

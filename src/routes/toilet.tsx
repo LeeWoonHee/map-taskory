@@ -40,6 +40,41 @@ export const Route = createFileRoute("/toilet")({
       { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
       { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "서울 공공화장실은 어디서 찾을 수 있나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "서울 생활 지도의 화장실 페이지에서 서울 전역의 공공화장실 위치를 지도에서 확인할 수 있습니다. 24시간 운영 화장실과 장애인 화장실 필터를 제공합니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "24시간 무료 화장실을 어디서 찾나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "화장실 지도에서 '24시간' 필터를 선택하면 24시간 개방되는 공공화장실만 표시됩니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "장애인 화장실은 어디에 있나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "화장실 지도에서 '장애인' 필터를 선택하면 장애인 화장실이 설치된 공공화장실을 확인할 수 있습니다.",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   loader: () => fetchToilets(),
   pendingComponent: PageLoader,
@@ -136,6 +171,7 @@ function ToiletPage() {
 
   return (
     <div className="relative flex flex-col h-[calc(100dvh-108px)]">
+      <h1 className="sr-only">서울 공공화장실 지도 — 24시간 · 무료 · 장애인 화장실 위치</h1>
       {/* 필터 바 */}
       <div className="flex-shrink-0 px-3 py-2 flex items-center gap-2 flex-wrap bg-white border-b border-gray-200">
         <button

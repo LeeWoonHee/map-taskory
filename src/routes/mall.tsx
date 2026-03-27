@@ -38,6 +38,41 @@ export const Route = createFileRoute("/mall")({
       { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
       { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "서울 쇼핑몰 흡연구역은 어디에 있나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "스타필드, 현대백화점, 신세계백화점, 롯데월드몰, 코엑스, 타임스퀘어 등 서울 주요 쇼핑몰의 흡연구역 위치를 지도에서 확인할 수 있습니다. 지도에서 쇼핑몰 마커를 클릭하면 상세 위치를 안내해 드립니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "백화점 편의점 위치를 어디서 확인하나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "서울 생활 지도에서 편의점 필터를 선택하면 각 쇼핑몰 내 편의점 위치를 확인할 수 있습니다.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "스타필드 흡연실은 어디에 있나요?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "스타필드 각 지점의 흡연실 위치는 서울 생활 지도의 쇼핑몰 지도에서 해당 스타필드 마커를 클릭하면 확인할 수 있습니다.",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   component: MallPage,
 });
@@ -141,6 +176,7 @@ function MallPage() {
 
   return (
     <div className="relative flex flex-col h-[calc(100dvh-108px)]">
+      <h1 className="sr-only">서울 쇼핑몰 지도 — 흡연구역 · 편의점 · 화장실 위치</h1>
       {/* 필터 바 */}
       <div className="flex-shrink-0 px-3 py-2 flex items-center gap-2 bg-white border-b border-gray-200">
         <span className="text-xs font-semibold text-gray-500 mr-1">{t.filterLabel}</span>
