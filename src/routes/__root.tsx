@@ -87,6 +87,7 @@ export const Route = createRootRoute({
         type: 'image/svg+xml',
         href: '/favicon.svg',
       },
+      { rel: 'shortcut icon', href: '/favicon.svg', type: 'image/x-icon' },
       {
         rel: 'icon',
         type: 'image/svg',
