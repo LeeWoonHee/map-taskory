@@ -18,7 +18,7 @@ export const Route = createFileRoute("/pharmacy")({
       { title: "서울 생활 지도 | 약국" },
       {
         name: "description",
-        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 내 근처 약국 위치를 지도에서 찾아보세요. 야간 약국·24시간 약국 필터로 늦은 시간에도 이용 가능한 약국을 빠르게 확인할 수 있습니다.",
       },
       {
         name: "keywords",
@@ -27,16 +27,27 @@ export const Route = createFileRoute("/pharmacy")({
       },
       { property: "og:title", content: "서울 생활 지도 | 약국" },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://map.taskory.work" },
+      { property: "og:url", content: "https://map.taskory.work/pharmacy" },
       {
         property: "og:description",
-        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 내 근처 약국 위치를 지도에서 찾아보세요. 야간 약국·24시간 약국 필터 제공.",
       },
+      { property: "og:image", content: "https://map.taskory.work/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:locale", content: "ko_KR" },
       { name: "theme-color", content: "#FFFFFF" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "서울 생활 지도 | 약국" },
+      { name: "twitter:description", content: "서울 내 근처 약국 위치를 지도에서 찾아보세요. 야간 약국·24시간 약국 필터 제공." },
+      { name: "twitter:image", content: "https://map.taskory.work/og-image.png" },
       { property: "kakao:title", content: "서울 생활 지도 | 약국" },
       { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
       { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
+      { name: "robots", content: "index, follow" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://map.taskory.work/pharmacy" },
     ],
     scripts: [
       {
