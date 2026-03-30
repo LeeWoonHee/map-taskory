@@ -48,6 +48,10 @@ export const Route = createRootRoute({
         content: '#FFFFFF',
       },
       { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: '서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국' },
+      { name: 'twitter:description', content: '서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.' },
+      { property: 'og:locale', content: 'ko_KR' },
+      { property: 'og:locale:alternate', content: 'en_US' },
       {
         property: 'kakao:title',
         content: '서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국',
@@ -60,6 +64,7 @@ export const Route = createRootRoute({
         name: 'naver-site-verification',
         content: '6c07ca86af04ede6ffe86e65679475019a3a4eed',
       },
+      { name: 'robots', content: 'index, follow' },
     ],
     scripts: [
       {
@@ -74,6 +79,15 @@ export const Route = createRootRoute({
           name: '서울 생활 지도 | 쇼핑몰 · 공공화장실 · 약국',
           url: 'https://map.taskory.work',
           description: '서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.',
+          inLanguage: 'ko-KR',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+              '@type': 'EntryPoint',
+              urlTemplate: 'https://map.taskory.work/mall',
+            },
+            'query-input': '서울 생활 지도 검색',
+          },
         }),
       },
     ],
@@ -105,6 +119,10 @@ export const Route = createRootRoute({
         rel: 'sitemap',
         type: 'application/xml',
         href: '/sitemap.xml',
+      },
+      {
+        rel: 'canonical',
+        href: 'https://map.taskory.work',
       },
     ],
   }),

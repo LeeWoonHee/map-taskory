@@ -20,7 +20,7 @@ export const Route = createFileRoute("/toilet")({
       { title: "서울 생활 지도 | 화장실" },
       {
         name: "description",
-        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 공공화장실 위치를 지도에서 확인하세요. 24시간 무료 화장실, 장애인 화장실 필터 제공. 내 근처 공공화장실을 빠르게 찾을 수 있습니다.",
       },
       {
         name: "keywords",
@@ -29,16 +29,27 @@ export const Route = createFileRoute("/toilet")({
       },
       { property: "og:title", content: "서울 생활 지도 | 화장실" },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://map.taskory.work" },
+      { property: "og:url", content: "https://map.taskory.work/toilet" },
       {
         property: "og:description",
-        content: "서울 쇼핑몰 흡연구역, 공공화장실, 약국 위치를 지도에서 한눈에 확인하세요.",
+        content: "서울 공공화장실 위치를 지도에서 확인하세요. 24시간 무료 화장실, 장애인 화장실 필터 제공.",
       },
+      { property: "og:image", content: "https://map.taskory.work/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:locale", content: "ko_KR" },
       { name: "theme-color", content: "#FFFFFF" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "서울 생활 지도 | 화장실" },
+      { name: "twitter:description", content: "서울 공공화장실 위치를 지도에서 확인하세요. 24시간 무료 화장실, 장애인 화장실 필터 제공." },
+      { name: "twitter:image", content: "https://map.taskory.work/og-image.png" },
       { property: "kakao:title", content: "서울 생활 지도 | 화장실" },
       { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
       { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
+      { name: "robots", content: "index, follow" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://map.taskory.work/toilet" },
     ],
     scripts: [
       {
