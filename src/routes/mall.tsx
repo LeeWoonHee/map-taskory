@@ -26,7 +26,7 @@ export const Route = createFileRoute("/mall")({
       {
         name: "keywords",
         content:
-          "서울쇼핑몰흡연구역,서울공공화장실,서울약국,서울지도, 서울화장실, 스타필드흡연, 백화점흡연, 스타필드편의점, 백화점편의점, 내근처 약국, 내근처화장실, 내근처공공화장실, 무료화장실, 서울무료화장실, 내근처무료화장실, 서울약국위치, 서울화장실위치,서울쇼핑몰흡연구역, 서울쇼핑몰흡연실, 서울쇼핑몰편의점, 서울쇼핑몰화장실, 서울쇼핑몰위치, 스타필드위치, 스타필드흡연구역, 스타필드흡연실, 스타필드편의점, 스타필드화장실, 백화점위치, 백화점흡연구역, 백화점흡연실, 백화점편의점, 백화점화장실, 신세계백화점편의점, 신세계백화점흡연실, 신세계백화점흡연구역, 신세계백화점편의점, 현대백화점흡연실, 현대백화점흡연구역, 현대백화점편의점, 현대백화점화장실, 롯데월드몰흡연실, 롯데월드몰흡연구역, 롯데월드몰편의점, 롯데월드몰화장실, 코엑스흡연실, 코엑스흡연구역, 코엑스편의점, 코엑스화장실, 타임스퀘어흡연구역, 타임스퀘어흡연실, 타임스퀘어편의점, 타임스퀘어화장실",
+          "서울쇼핑몰흡연구역, 서울쇼핑몰흡연실, 서울쇼핑몰편의점, 서울쇼핑몰화장실, 스타필드흡연구역, 스타필드흡연실, 스타필드편의점, 현대백화점흡연실, 현대백화점흡연구역, 현대백화점편의점, 신세계백화점흡연실, 신세계백화점흡연구역, 롯데월드몰흡연실, 롯데월드몰흡연구역, 코엑스흡연구역, 코엑스편의점, 타임스퀘어흡연구역, 백화점흡연구역, 백화점편의점",
       },
       { property: "og:title", content: "서울 생활 지도 | 쇼핑몰" },
       { property: "og:type", content: "website" },
@@ -35,15 +35,16 @@ export const Route = createFileRoute("/mall")({
       { property: "og:image", content: "https://map.taskory.work/og-image.png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "서울 쇼핑몰 흡연구역·편의점·화장실 위치 지도" },
       { property: "og:locale", content: "ko_KR" },
+      { property: "og:site_name", content: "서울 생활 지도" },
       { name: "theme-color", content: "#FFFFFF" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "서울 생활 지도 | 쇼핑몰" },
       { name: "twitter:description", content: "서울 스타필드·현대·신세계·롯데·코엑스·타임스퀘어 쇼핑몰의 흡연구역, 편의점, 화장실 위치를 지도에서 바로 확인하세요." },
       { name: "twitter:image", content: "https://map.taskory.work/og-image.png" },
+      { name: "twitter:image:alt", content: "서울 쇼핑몰 흡연구역·편의점·화장실 위치 지도" },
       { property: "kakao:title", content: "서울 생활 지도 | 쇼핑몰" },
-      { name: "google-site-verification", content: "YK0uylhG5mPDeUcfzmsuhiJ_5qlXkI12xLZ0JuVftgo" },
-      { name: "naver-site-verification", content: "6c07ca86af04ede6ffe86e65679475019a3a4eed" },
       { name: "robots", content: "index, follow" },
     ],
     links: [
